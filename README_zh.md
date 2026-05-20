@@ -10,7 +10,7 @@ Python 包导入名：
 import topostategrid
 ```
 
-TopoStateGrid 的目标是构建可复用的电力系统图数据流水线。它不包含 GNN 模型、不包含级联故障仿真器、不支持 `.mat` 文件，也不构建异构图。
+TopoStateGrid 的目标是构建一个简单可复用的电力系统图数据流水线：读取电网数据、构建图样本、保存数据集、创建划分、归一化特征，并可选地渲染图序列方便检查。
 
 ## 构建的图
 
@@ -206,7 +206,7 @@ y_cls = 1 if max_line_loading_ratio > 1.0 else 0
 y_reg = risk_score
 ```
 
-该标签只用于图构建实验，不是真实级联故障标签。默认不会覆盖已有标签，除非传入 `overwrite=True`。
+这些标签只是图构建实验中的辅助标签。默认不会覆盖已有标签，除非传入 `overwrite=True`。
 
 ## 划分与归一化
 
@@ -273,19 +273,10 @@ MPLCONFIGDIR=/private/tmp/topostategrid-mpl pytest -q
 
 pandapower 可能提示未安装 `numba`，这只影响 pandapower 运行速度。
 
-## 研究定位
-
-TopoStateGrid 不是 PowerGraph 或 pandapower 的简单封装。
-
-PowerGraph 可以作为参考数据集，pandapower 可以作为解析或仿真工具。TopoStateGrid 的核心输出是一个面向电力系统机器学习的、物理相关、状态相关、可选时间索引的图构建流水线。
-
-## 限制
+## 当前范围
 
 - 只支持同构 bus-branch 图。
-- 不包含 GNN 模型。
-- 不包含级联故障仿真器。
 - 不支持 `.mat`。
 - 不支持异构组件图。
-- 不提供真实级联故障标签。
 - pandapower 线路额定值映射在只有 `max_i_ka` 时是近似的。
 - MP4 渲染需要 ffmpeg；GIF 渲染依赖 matplotlib、networkx 和 Pillow。

@@ -10,7 +10,7 @@ The Python import name is:
 import topostategrid
 ```
 
-TopoStateGrid focuses on reusable graph dataset construction for power-system machine learning. It does not include a GNN model, a cascading-failure simulator, `.mat` support, or heterogeneous graph construction.
+TopoStateGrid focuses on reusable graph dataset construction for power-system machine learning. It keeps the workflow small: load power-grid data, build graph samples, save them, split them, normalize features, and optionally render graph sequences for inspection.
 
 ## What It Builds
 
@@ -214,9 +214,7 @@ y_cls = 1 if max_line_loading_ratio > 1.0 else 0
 y_reg = risk_score
 ```
 
-This is only a proxy for graph-construction experiments. It is not a real cascading-failure target.
-
-Proxy labels do not overwrite existing `data.y`, `data.y_cls`, `data.y_reg`, or `data.risk_score` unless `overwrite=True` is passed.
+These labels are simple helper labels for graph-construction experiments. They do not overwrite existing `data.y`, `data.y_cls`, `data.y_reg`, or `data.risk_score` unless `overwrite=True` is passed.
 
 ## Splits And Normalization
 
@@ -315,19 +313,10 @@ outputs/
 
 Use `topostategrid.export.load_graphs` to load `.pt` graph files because it handles recent PyTorch `weights_only` defaults.
 
-## Research Positioning
-
-TopoStateGrid is not positioned as a wrapper around PowerGraph or pandapower.
-
-PowerGraph can be used as a reference dataset, and pandapower can be used as a parsing or simulation tool. TopoStateGrid's main output is a reusable graph-construction pipeline for physically grounded, state-dependent, and optionally time-indexed power-grid graph datasets.
-
-## Limitations
+## Current Scope
 
 - Homogeneous bus-branch graph only.
-- No GNN model.
-- No cascading-failure simulator.
 - No `.mat` support.
 - No heterogeneous component graph.
-- No real cascading-failure labels.
 - pandapower line rating mapping may be approximate when only `max_i_ka` is available.
 - MP4 rendering requires ffmpeg; GIF rendering uses matplotlib, networkx, and Pillow.

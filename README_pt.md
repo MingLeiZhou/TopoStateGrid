@@ -10,7 +10,7 @@ O nome de importação em Python é:
 import topostategrid
 ```
 
-TopoStateGrid foca na construção reutilizável de datasets em grafo para aprendizado de máquina em sistemas elétricos. Ele não inclui um modelo GNN, não implementa um simulador de falhas em cascata, não oferece suporte a arquivos `.mat` e não constrói grafos heterogêneos.
+TopoStateGrid foca em uma pipeline simples e reutilizável para dados de sistemas elétricos: carregar dados da rede, construir amostras em grafo, salvar datasets, criar divisões, normalizar atributos e, opcionalmente, renderizar sequências de grafos para inspeção.
 
 ## O Que Ele Constrói
 
@@ -206,7 +206,7 @@ y_cls = 1 if max_line_loading_ratio > 1.0 else 0
 y_reg = risk_score
 ```
 
-Esse rótulo é apenas um proxy para experimentos de construção de grafos. Ele não é um alvo real de falha em cascata. Por padrão, rótulos existentes não são sobrescritos, exceto quando `overwrite=True`.
+Esses rótulos são apenas auxiliares para experimentos de construção de grafos. Por padrão, rótulos existentes não são sobrescritos, exceto quando `overwrite=True`.
 
 ## Divisões e Normalização
 
@@ -273,19 +273,10 @@ MPLCONFIGDIR=/private/tmp/topostategrid-mpl pytest -q
 
 pandapower pode avisar que `numba` não está instalado. Esse aviso afeta apenas desempenho.
 
-## Posicionamento de Pesquisa
-
-TopoStateGrid não é apresentado como um simples wrapper de PowerGraph ou pandapower.
-
-PowerGraph pode ser usado como dataset de referência, e pandapower pode ser usado como ferramenta de parsing ou simulação. A saída principal do TopoStateGrid é uma pipeline reutilizável para construção de grafos de sistemas elétricos, fisicamente fundamentados, dependentes do estado e opcionalmente indexados no tempo.
-
-## Limitações
+## Escopo Atual
 
 - Apenas grafo homogêneo bus-branch.
-- Nenhum modelo GNN.
-- Nenhum simulador de falhas em cascata.
 - Sem suporte a `.mat`.
 - Sem grafo heterogêneo de componentes.
-- Sem rótulos reais de falha em cascata.
 - O mapeamento de ratings de linhas do pandapower pode ser aproximado quando só há `max_i_ka`.
 - Renderização MP4 requer ffmpeg; GIF usa matplotlib, networkx e Pillow.
