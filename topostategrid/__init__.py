@@ -22,9 +22,9 @@ from .parser import (
 from .splits import create_lono_split, create_random_split, create_time_based_split
 from .tables import build_graph_from_csv_tables, build_graph_from_tables
 from .temporal import make_temporal_windows
-from .visualization import render_graph_sequence
+from .visualization import render_graph_html, render_graph_sequence
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 __all__ = [
     "EDGE_FEATURE_NAMES",
@@ -50,6 +50,7 @@ __all__ = [
     "make_temporal_windows",
     "parse_matpower_case",
     "parse_opfdata_sample",
+    "render_graph_html",
     "render_graph_sequence",
     "save_graphs",
     "save_split_json",

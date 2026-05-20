@@ -222,10 +222,10 @@ LONO 适合跨拓扑泛化评估，例如在 `case14`、`case30`、`case57` 上�
 
 ## 可视化
 
-可选 GIF/MP4 渲染用于检查图序列：
+可选 GIF/MP4 渲染和交互式 HTML 输出可用于检查图序列：
 
 ```python
-from topostategrid import render_graph_sequence
+from topostategrid import render_graph_html, render_graph_sequence
 
 render_graph_sequence(
     graphs,
@@ -233,14 +233,32 @@ render_graph_sequence(
     node_value="vm",
     edge_value="loading_ratio",
 )
+
+render_graph_html(
+    graphs,
+    "outputs/topostategrid_interactive.html",
+    node_value="vm",
+    edge_value="loading_ratio",
+)
 ```
 
-该功能只可视化已有图样本，不做电网动态仿真。
+HTML 查看器支持缩放、平移、播放、时间滑块，以及鼠标悬停查看节点和线路特征值。该功能只可视化已有图样本，不做电网动态仿真。
+
+演示预览：
+
+![TopoStateGrid case300 demo](docs/demo/topostategrid_case300_20s.gif)
+
+交互式 HTML 演示文件：
+
+- [docs/demo/topostategrid_case300_interactive.html](docs/demo/topostategrid_case300_interactive.html)
+
+交互式 HTML 建议下载或 clone 仓库后在浏览器中打开。GitHub 页面可能只显示 HTML 源码，不直接运行。
 
 大规模 pandapower 示例：
 
 ```bash
 python examples/08_render_large_pandapower_gif.py
+python examples/09_render_interactive_html.py
 ```
 
 该脚本使用 pandapower `case300`，生成 300 节点图序列，并渲染 20 秒 GIF。
@@ -257,6 +275,7 @@ python examples/08_render_large_pandapower_gif.py
 | `examples/06_build_from_pandapower.py` | 从小型 pandapower 网络构建图。 |
 | `examples/07_render_graph_animation.py` | 渲染小型图状态 GIF。 |
 | `examples/08_render_large_pandapower_gif.py` | 从 pandapower `case300` 渲染 20 秒 GIF。 |
+| `examples/09_render_interactive_html.py` | 输出交互式 HTML，悬停查看节点和线路状态。 |
 
 ## 测试
 
@@ -279,4 +298,4 @@ pandapower 可能提示未安装 `numba`，这只影响 pandapower 运行速度�
 - 不支持 `.mat`。
 - 不支持异构组件图。
 - pandapower 线路额定值映射在只有 `max_i_ka` 时是近似的。
-- MP4 渲染需要 ffmpeg；GIF 渲染依赖 matplotlib、networkx 和 Pillow。
+- MP4 渲染需要 ffmpeg；GIF 渲染依赖 matplotlib、networkx 和 Pillow。HTML 渲染是单文件输出，使用浏览器 SVG/JavaScript。

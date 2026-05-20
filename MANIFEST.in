@@ -1,3 +1,5 @@
 include README.md
 include README_zh.md
 include README_pt.md
+recursive-include docs/demo *.gif *.html
+recursive-include examples *.py

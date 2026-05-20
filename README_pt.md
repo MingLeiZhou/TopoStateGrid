@@ -222,10 +222,10 @@ LONO é útil para avaliação entre topologias, por exemplo treinar em `case14`
 
 ## Visualização
 
-TopoStateGrid inclui renderização opcional em GIF/MP4 para inspecionar sequências de grafos:
+TopoStateGrid inclui renderização opcional em GIF/MP4 e saída HTML interativa para inspecionar sequências de grafos:
 
 ```python
-from topostategrid import render_graph_sequence
+from topostategrid import render_graph_html, render_graph_sequence
 
 render_graph_sequence(
     graphs,
@@ -233,14 +233,32 @@ render_graph_sequence(
     node_value="vm",
     edge_value="loading_ratio",
 )
+
+render_graph_html(
+    graphs,
+    "outputs/topostategrid_interactive.html",
+    node_value="vm",
+    edge_value="loading_ratio",
+)
 ```
 
-O renderizador visualiza amostras já construídas. Ele não simula dinâmica da rede elétrica.
+O visualizador HTML oferece zoom, pan, reprodução, slider de frames e tooltips para valores de nós e linhas. O renderizador visualiza amostras já construídas. Ele não simula dinâmica da rede elétrica.
+
+Prévia da demonstração:
+
+![TopoStateGrid case300 demo](docs/demo/topostategrid_case300_20s.gif)
+
+Arquivo HTML interativo:
+
+- [docs/demo/topostategrid_case300_interactive.html](docs/demo/topostategrid_case300_interactive.html)
+
+Para usar a visualização interativa, baixe ou clone o repositório e abra o arquivo HTML no navegador. O GitHub pode mostrar o código-fonte HTML em vez de executá-lo.
 
 Exemplo grande com pandapower:
 
 ```bash
 python examples/08_render_large_pandapower_gif.py
+python examples/09_render_interactive_html.py
 ```
 
 Esse script usa `case300` do pandapower, constrói uma sequência de grafos com 300 nós e renderiza um GIF de 20 segundos.
@@ -257,6 +275,7 @@ Esse script usa `case300` do pandapower, constrói uma sequência de grafos com 
 | `examples/06_build_from_pandapower.py` | Construir grafo a partir de uma pequena rede pandapower. |
 | `examples/07_render_graph_animation.py` | Renderizar um GIF pequeno de estados do grafo. |
 | `examples/08_render_large_pandapower_gif.py` | Renderizar GIF de 20 segundos com pandapower `case300`. |
+| `examples/09_render_interactive_html.py` | Renderizar HTML interativo com tooltips de estados de nós e linhas. |
 
 ## Testes
 
@@ -279,4 +298,4 @@ pandapower pode avisar que `numba` não está instalado. Esse aviso afeta apenas
 - Sem suporte a `.mat`.
 - Sem grafo heterogêneo de componentes.
 - O mapeamento de ratings de linhas do pandapower pode ser aproximado quando só há `max_i_ka`.
-- Renderização MP4 requer ffmpeg; GIF usa matplotlib, networkx e Pillow.
+- Renderização MP4 requer ffmpeg; GIF usa matplotlib, networkx e Pillow. A saída HTML é um arquivo standalone com SVG/JavaScript no navegador.

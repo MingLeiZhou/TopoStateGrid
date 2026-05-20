@@ -230,10 +230,10 @@ LONO supports cross-topology evaluation, for example training on `case14`, `case
 
 ## Visualization
 
-TopoStateGrid includes optional GIF/MP4 rendering for inspecting constructed graph sequences:
+TopoStateGrid includes optional GIF/MP4 rendering and interactive HTML output for inspecting constructed graph sequences:
 
 ```python
-from topostategrid import render_graph_sequence
+from topostategrid import render_graph_html, render_graph_sequence
 
 render_graph_sequence(
     graphs,
@@ -241,14 +241,32 @@ render_graph_sequence(
     node_value="vm",
     edge_value="loading_ratio",
 )
+
+render_graph_html(
+    graphs,
+    "outputs/topostategrid_interactive.html",
+    node_value="vm",
+    edge_value="loading_ratio",
+)
 ```
 
-The renderer visualizes existing graph samples. It does not simulate grid dynamics.
+The HTML viewer supports zoom, pan, frame playback, a time slider, and hover tooltips for node and line feature values. The renderer visualizes existing graph samples. It does not simulate grid dynamics.
+
+Demo preview:
+
+![TopoStateGrid case300 demo](docs/demo/topostategrid_case300_20s.gif)
+
+Interactive demo file:
+
+- [docs/demo/topostategrid_case300_interactive.html](docs/demo/topostategrid_case300_interactive.html)
+
+For the interactive view, download or clone the repository and open the HTML file in a browser. GitHub may display the HTML source instead of running it.
 
 Large pandapower example:
 
 ```bash
 python examples/08_render_large_pandapower_gif.py
+python examples/09_render_interactive_html.py
 ```
 
 This script uses pandapower `case300`, converts it to a 300-node TopoStateGrid graph sequence, and renders a 20-second GIF.
@@ -265,6 +283,7 @@ This script uses pandapower `case300`, converts it to a 300-node TopoStateGrid g
 | `examples/06_build_from_pandapower.py` | Build a graph from a small pandapower network. |
 | `examples/07_render_graph_animation.py` | Render a small graph-state sequence to GIF. |
 | `examples/08_render_large_pandapower_gif.py` | Render a 20-second GIF from pandapower `case300`. |
+| `examples/09_render_interactive_html.py` | Render an interactive HTML viewer with node and line state tooltips. |
 
 The example scripts write generated artifacts to `outputs/`, which is intentionally ignored by git.
 
@@ -308,7 +327,17 @@ outputs/
 ├── graphs_pandapower.pt
 ├── topostategrid_sequence.gif
 ├── topostategrid_case300_20s.gif
+├── topostategrid_interactive.html
+├── topostategrid_case300_interactive.html
 └── README_generated.md
+```
+
+Committed demo files are stored separately:
+
+```text
+docs/demo/
+├── topostategrid_case300_20s.gif
+└── topostategrid_case300_interactive.html
 ```
 
 Use `topostategrid.export.load_graphs` to load `.pt` graph files because it handles recent PyTorch `weights_only` defaults.
@@ -319,4 +348,4 @@ Use `topostategrid.export.load_graphs` to load `.pt` graph files because it hand
 - No `.mat` support.
 - No heterogeneous component graph.
 - pandapower line rating mapping may be approximate when only `max_i_ka` is available.
-- MP4 rendering requires ffmpeg; GIF rendering uses matplotlib, networkx, and Pillow.
+- MP4 rendering requires ffmpeg; GIF rendering uses matplotlib, networkx, and Pillow. HTML rendering is a standalone file and uses browser SVG/JavaScript.

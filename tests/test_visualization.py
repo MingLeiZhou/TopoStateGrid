@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from topostategrid import build_graph_from_tables, render_graph_sequence
+from topostategrid import build_graph_from_tables, render_graph_html, render_graph_sequence
 
 
 VISUAL_DEPS_AVAILABLE = all(
@@ -68,6 +68,21 @@ class VisualizationTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             with self.assertRaisesRegex(ValueError, "output_path"):
                 render_graph_sequence(_toy_sequence(), Path(tmpdir) / "sequence.txt")
+
+    def test_render_graph_html(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = render_graph_html(
+                _toy_sequence(),
+                Path(tmpdir) / "sequence.html",
+                layout="circular",
+                title="Interactive QA",
+            )
+            self.assertTrue(path.exists())
+            html = path.read_text(encoding="utf-8")
+            self.assertIn("Interactive QA", html)
+            self.assertIn("loading_ratio", html)
+            self.assertIn("sample_0", html)
+            self.assertIn("Wheel: zoom", html)
 
     @unittest.skipUnless(VISUAL_DEPS_AVAILABLE, "visualization dependencies are not installed")
     def test_render_graph_sequence_to_gif(self):
