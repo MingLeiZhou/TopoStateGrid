@@ -17,6 +17,12 @@ def main() -> None:
         limit=10,
         attach_proxy_label=True,
     )
+    if not graphs:
+        raise SystemExit(
+            "No local OPFData samples found for pglib_opf_case14_ieee. "
+            "Run this example from the repository root with data/opfdata available, "
+            "or call topostategrid package functions with your own input path."
+        )
     windows = make_temporal_windows(graphs, input_window=3, forecast_horizon=1, target="risk_score")
 
     output_path = ROOT / "outputs" / "temporal_windows.pt"

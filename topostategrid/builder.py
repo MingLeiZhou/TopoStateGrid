@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -279,19 +280,28 @@ def _make_data(
         edge_index=torch.as_tensor(edge_index, dtype=torch.long),
         edge_attr=torch.as_tensor(np.nan_to_num(edge_attr, nan=0.0), dtype=torch.float32),
     )
+    data.y = torch.tensor([-1], dtype=torch.long)
+    data.y_cls = torch.tensor([-1], dtype=torch.long)
+    data.y_reg = torch.tensor([0.0], dtype=torch.float32)
+    data.risk_score = torch.tensor([0.0], dtype=torch.float32)
+    data.has_label = torch.tensor([False], dtype=torch.bool)
+    data.label_state = "missing"
     data.num_nodes = int(x.shape[0])
     data.network_id = parsed.network_id
     data.sample_id = parsed.sample_id
     data.timestamp = parsed.timestamp if parsed.timestamp is not None else ""
-    data.scenario_id = parsed.scenario_id
+    data.scenario_id = parsed.scenario_id if parsed.scenario_id is not None else ""
     data.contingency_id = parsed.contingency_id if parsed.contingency_id is not None else ""
     data.base_mva = float(parsed.base_mva)
     data.source_type = parsed.source_type
-    data.source_path = parsed.path
+    data.source_format = parsed.source_type
+    data.source_path = parsed.path if parsed.path is not None else ""
     data.node_feature_names = list(NODE_FEATURE_NAMES)
     data.edge_feature_names = list(EDGE_FEATURE_NAMES)
-    data.metadata = dict(parsed.metadata)
+    data.metadata_json = _metadata_to_json(parsed.metadata)
+    data.metadata = data.metadata_json
     data.construction_notes = notes
+    data.label_notes = ""
     return data
 
 
@@ -363,3 +373,7 @@ def _value(row: Any, idx: int, default: float = 0.0) -> float:
         return value if np.isfinite(value) else default
     except (TypeError, ValueError):
         return default
+
+
+def _metadata_to_json(metadata: dict[str, Any]) -> str:
+    return json.dumps(dict(metadata), sort_keys=True, default=str)

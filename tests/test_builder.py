@@ -7,12 +7,14 @@ from topostategrid import (
     ParsedCase,
     attach_stress_proxy_labels,
     build_graph,
+    build_graph_from_matpower,
     create_lono_split,
     create_random_split,
     load_graphs,
     make_temporal_windows,
     save_graphs,
 )
+from torch_geometric.loader import DataLoader
 
 
 def _synthetic_opfdata_case(sample_id="example_1", network_id="case2"):
@@ -52,6 +54,7 @@ class BuilderTest(unittest.TestCase):
         self.assertEqual(graph.edge_attr.shape, (2, 12))
         self.assertEqual(graph.network_id, "case2")
         self.assertEqual(graph.sample_id, "example_1")
+        self.assertIsInstance(graph.metadata, str)
         self.assertEqual(graph.y.item(), 1)
         self.assertGreater(graph.risk_score.item(), 1.0)
 
@@ -89,6 +92,17 @@ class BuilderTest(unittest.TestCase):
         windows = make_temporal_windows(graphs, input_window=2, forecast_horizon=1, target="risk_score")
         self.assertEqual(len(windows), 3)
         self.assertEqual(len(windows[0]["graphs"]), 2)
+
+    def test_mixed_opfdata_and_matpower_graphs_are_batchable(self):
+        opf_graph = build_graph(_synthetic_opfdata_case(), attach_proxy_label=True)
+        matpower_graph = build_graph_from_matpower(Path("data/pglib/pglib_opf_case118_ieee.m"))
+
+        batch = next(iter(DataLoader([opf_graph, matpower_graph], batch_size=2)))
+
+        self.assertEqual(batch.num_graphs, 2)
+        self.assertEqual(batch.x.shape[1], opf_graph.x.shape[1])
+        self.assertEqual(batch.edge_attr.shape[1], opf_graph.edge_attr.shape[1])
+        self.assertIsInstance(batch.metadata, list)
 
 
 if __name__ == "__main__":

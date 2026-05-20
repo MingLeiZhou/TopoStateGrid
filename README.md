@@ -31,16 +31,27 @@ For the MVP, TopoStateGrid builds a homogeneous bus-branch graph and exports a P
 - `data.x`
 - `data.edge_index`
 - `data.edge_attr`
-- `data.y`, optional
+- `data.y`, optional label value; unlabeled graphs use `data.has_label=False` with placeholder label tensors for PyG batching
 - `data.network_id`
 - `data.sample_id`
 - `data.timestamp`, optional
 - `data.scenario_id`, optional
 - `data.contingency_id`, optional
+- `data.metadata`, a JSON string for source-specific metadata
 
 Edges are stored bidirectionally so message passing can use both branch directions.
 
+Source-specific metadata is stored as a JSON string rather than a Python dict so OPFData and MATPOWER graphs remain batchable together with PyTorch Geometric `DataLoader`.
+
 ## Supported Inputs
+
+Supported input sources in v1.1:
+
+- OPFData JSON
+- MATPOWER / PGLib `.m`
+- pandapower `net` object
+- pandas DataFrame tables
+- CSV tables
 
 Current working input paths:
 
@@ -53,7 +64,21 @@ The OPFData parser validates that JSON is well-formed and that `grid.nodes.bus` 
 
 The local environment used for this prototype contains extracted OPFData samples for `pglib_opf_case14_ieee` and `pglib_opf_case30_ieee`, plus a static PGLib MATPOWER case for `pglib_opf_case118_ieee`.
 
-Pandapower support is intentionally not implemented in this first prototype because the local environment already includes OPFData JSON and PGLib `.m` data, and the goal is to avoid over-engineering the first version.
+pandapower support is optional. Install it with:
+
+```bash
+python -m pip install -e ".[pandapower]"
+```
+
+The pandapower converter supports bus nodes and line/transformer branch edges. For lines, `rate_a` uses `max_i_ka` as an approximate rating proxy when no direct MVA rating is available. The graph remains homogeneous bus-branch only.
+
+Graph rendering support is also optional. Install it with:
+
+```bash
+python -m pip install -e ".[visual]"
+```
+
+The renderer writes GIF or MP4 files from existing graph samples for inspection. It does not simulate grid dynamics.
 
 ## Features
 
@@ -137,6 +162,18 @@ Create random, ordered, and LONO splits:
 python examples/04_create_splits.py
 ```
 
+Render a small graph-state sequence to GIF:
+
+```bash
+python examples/07_render_graph_animation.py
+```
+
+Render a 20-second GIF from pandapower's 300-bus benchmark:
+
+```bash
+python examples/08_render_large_pandapower_gif.py
+```
+
 Run tests:
 
 ```bash
@@ -151,6 +188,16 @@ Install optional test tooling with:
 python -m pip install -e ".[test]"
 ```
 
+On systems where the default matplotlib cache directory is not writable, use a writable cache directory for tests or rendering:
+
+```bash
+MPLCONFIGDIR=/private/tmp/topostategrid-mpl python -m unittest discover -s tests -q
+```
+
+On some macOS/conda environments, importing `torch`, `torch_geometric`, and numeric packages in one probe may expose an OpenMP runtime conflict from binary dependencies. Prefer a clean, consistent conda or virtualenv environment and avoid mixing package channels where possible.
+
+pandapower may warn that `numba` is not installed. That warning only affects pandapower runtime speed; install `numba` separately if pandapower performance matters.
+
 ## Output Files
 
 The examples write to `outputs/`, including:
@@ -160,10 +207,90 @@ The examples write to `outputs/`, including:
 - `graphs_multi.pt`
 - `metadata_multi.csv`
 - `split_random.json`
+- `split_time.json`
 - `split_lono.json`
 - `temporal_windows.pt`
+- `graphs_tables.pt`
+- `graphs_pandapower.pt`, when pandapower is installed
+- `topostategrid_sequence.gif`, when visualization dependencies are installed
+- `topostategrid_case300_20s.gif`, when pandapower and visualization dependencies are installed
 - `README_generated.md`
 
 Use `topostategrid.export.load_graphs` to load `.pt` files because it handles recent PyTorch `weights_only` defaults.
 
 The example scripts assume the repository-local `data/` layout used by this prototype and overwrite their corresponding files in `outputs/` on repeated runs. Use the package functions directly when you need custom input paths or run-specific output directories.
+
+## v1.1 Table And pandapower Examples
+
+Build from pandas DataFrames:
+
+```python
+import pandas as pd
+from topostategrid import build_graph_from_tables
+
+bus_df = pd.DataFrame({
+    "bus_id": [1, 2, 3],
+    "bus_type": [3, 1, 1],
+    "pd": [0.0, 1.5, 0.8],
+    "qd": [0.0, 0.4, 0.2],
+})
+branch_df = pd.DataFrame({
+    "from_bus": [1, 2],
+    "to_bus": [2, 3],
+    "r": [0.01, 0.02],
+    "x": [0.05, 0.06],
+})
+
+data = build_graph_from_tables(
+    bus_df,
+    branch_df,
+    network_id="toy_3bus",
+    sample_id="sample_0",
+)
+```
+
+Build from CSV tables:
+
+```python
+from topostategrid import build_graph_from_csv_tables
+
+data = build_graph_from_csv_tables(
+    "bus.csv",
+    "branch.csv",
+    network_id="toy_3bus",
+)
+```
+
+Build from pandapower:
+
+```python
+import pandapower as pp
+from topostategrid import build_graph_from_pandapower
+
+net = pp.create_empty_network()
+b1 = pp.create_bus(net, vn_kv=110)
+b2 = pp.create_bus(net, vn_kv=110)
+b3 = pp.create_bus(net, vn_kv=110)
+pp.create_ext_grid(net, b1)
+pp.create_load(net, b2, p_mw=10.0, q_mvar=3.0)
+pp.create_line_from_parameters(net, b1, b2, 1.0, 0.1, 0.2, 0.0, 0.4)
+pp.create_line_from_parameters(net, b2, b3, 1.0, 0.1, 0.2, 0.0, 0.4)
+pp.runpp(net)
+
+data = build_graph_from_pandapower(net, network_id="pandapower_3bus")
+```
+
+Render constructed graph samples to GIF:
+
+```python
+from topostategrid import render_graph_sequence
+
+render_graph_sequence(
+    [data],
+    "outputs/topostategrid_sequence.gif",
+    node_value="vm",
+    edge_value="loading_ratio",
+)
+```
+
+TopoStateGrid v1.1 still does not include a GNN model, cascading-failure simulator, `.mat` support, or heterogeneous graph construction.

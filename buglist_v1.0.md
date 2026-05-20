@@ -5,7 +5,7 @@
 - Original status: MVP graph construction worked for local OPFData and PGLib/MATPOWER data, but parser robustness, split validation, temporal ordering, and proxy-label safety had known gaps.
 - Fixed in this pass: all High and Medium priority bugs were fixed or addressed with explicit validation and regression tests. Low-priority documentation/package metadata issues were addressed where simple.
 - Current status: TopoStateGrid imports as `topostategrid`, reports version `1.0.0`, and builds OPFData and MATPOWER graph samples successfully.
-- MVP usability: usable for graph construction, metadata preservation, proxy-label prototyping, dataset splitting, temporal windows, normalization, and export. Remaining limitations are documented below.
+- MVP usability: usable for graph construction, metadata preservation, mixed OPFData/MATPOWER batching, proxy-label prototyping, dataset splitting, temporal windows, normalization, and export. Remaining limitations are documented below.
 
 ## Environment
 
@@ -329,10 +329,10 @@ No output versioning or `overwrite=False` export policy was added. This remains 
   - Output: `1.0.0`
 - Unit test result:
   - Command: `python -m unittest discover -s tests -q`
-  - Output: `Ran 30 tests ... OK`
+  - Output: `Ran 31 tests ... OK`
 - Pytest result:
   - Command: `pytest -q`
-  - Output: `30 passed, 3 warnings in 3.92s`
+  - Output: `31 passed, 3 warnings`
 - Example script results:
   - `python examples/01_build_single_graph.py`: passed; built one case14 graph with 14 nodes, 40 edges, `x=(14, 9)`, `edge_attr=(40, 12)`, and reloaded `outputs/graphs.pt`.
   - `python examples/02_build_multiple_state_graphs.py`: passed; built 16 case14 graphs and wrote `graphs_multi.pt`, `metadata_multi.csv`, and `split_random.json`.
@@ -344,6 +344,12 @@ No output versioning or `overwrite=False` export policy was added. This remains 
 - Compile check:
   - Command: `python -m compileall -q topostategrid examples tests`
   - Result: passed.
+
+## Post-QA Fixes
+
+- Mixed OPFData and MATPOWER graphs now batch together in PyTorch Geometric `DataLoader`. Source-specific metadata is stored as a JSON string on `data.metadata` instead of heterogeneous dictionaries, and all graphs initialize consistent optional label fields with `data.has_label` marking real labels.
+- Example scripts now fail with short user-facing messages when the repository-local `data/` layout is absent, instead of raising low-level tracebacks or silently writing empty outputs.
+- README now documents JSON metadata storage, mixed-source batching rationale, `split_time.json`, and a known macOS/conda OpenMP runtime conflict that can appear when binary dependencies are mixed.
 
 ## Fix Report for v1.0
 

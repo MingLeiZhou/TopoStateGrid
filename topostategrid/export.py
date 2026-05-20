@@ -53,6 +53,7 @@ def write_metadata_csv(graphs: Sequence[Any], path: str | Path) -> Path:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         for idx, graph in enumerate(graphs):
+            has_label = _has_label(graph)
             writer.writerow(
                 {
                     "index": idx,
@@ -68,8 +69,8 @@ def write_metadata_csv(graphs: Sequence[Any], path: str | Path) -> Path:
                     "num_edge_features": graph.edge_attr.shape[1]
                     if hasattr(graph, "edge_attr") and graph.edge_attr.ndim == 2
                     else "",
-                    "risk_score": _first_scalar(getattr(graph, "risk_score", "")),
-                    "y": _first_scalar(getattr(graph, "y", "")),
+                    "risk_score": _first_scalar(getattr(graph, "risk_score", "")) if has_label else "",
+                    "y": _first_scalar(getattr(graph, "y", "")) if has_label else "",
                 }
             )
     return path
@@ -130,3 +131,12 @@ def _first_scalar(value: Any) -> Any:
             return ""
         return value.detach().cpu().reshape(-1)[0].item()
     return value
+
+
+def _has_label(graph: Any) -> bool:
+    value = getattr(graph, "has_label", False)
+    if isinstance(value, torch.Tensor):
+        if value.numel() == 0:
+            return False
+        return bool(value.detach().cpu().reshape(-1)[0].item())
+    return bool(value)

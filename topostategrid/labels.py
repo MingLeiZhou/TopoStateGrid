@@ -19,16 +19,24 @@ def attach_labels(
 
     if y is not None:
         data.y = _tensor_1d(y)
+        data.has_label = torch.tensor([True], dtype=torch.bool)
+        data.label_state = "user"
     if y_cls is not None:
         data.y_cls = _tensor_1d(y_cls, dtype=torch.long)
         if y is None:
             data.y = data.y_cls
+        data.has_label = torch.tensor([True], dtype=torch.bool)
+        data.label_state = "user"
     if y_reg is not None:
         data.y_reg = _tensor_1d(y_reg)
         if y is None and y_cls is None:
             data.y = data.y_reg
+        data.has_label = torch.tensor([True], dtype=torch.bool)
+        data.label_state = "user"
     if risk_score is not None:
         data.risk_score = _tensor_1d(risk_score)
+        data.has_label = torch.tensor([True], dtype=torch.bool)
+        data.label_state = "user"
     return data
 
 
@@ -65,6 +73,8 @@ def attach_stress_proxy_labels(
     data.y_reg = torch.tensor([risk], dtype=torch.float32)
     data.y_cls = torch.tensor([1 if risk > threshold else 0], dtype=torch.long)
     data.y = data.y_cls
+    data.has_label = torch.tensor([True], dtype=torch.bool)
+    data.label_state = "proxy"
     data.label_notes = (
         "Temporary proxy: y_cls = 1 if max loading_ratio exceeds the threshold; "
         "not a cascading-failure ground-truth label."
@@ -83,5 +93,24 @@ def _existing_label_fields(data: Data) -> list[str]:
     existing: list[str] = []
     for name in ("y", "y_cls", "y_reg", "risk_score"):
         if hasattr(data, name) and getattr(data, name) is not None:
+            if _is_missing_label_placeholder(data, name):
+                continue
             existing.append(name)
     return existing
+
+
+def _is_missing_label_placeholder(data: Data, name: str) -> bool:
+    if not hasattr(data, "has_label"):
+        return False
+    has_label = getattr(data, "has_label")
+    if isinstance(has_label, torch.Tensor) and bool(has_label.reshape(-1)[0].item()):
+        return False
+    if getattr(data, "label_state", "") == "missing":
+        return True
+    value = getattr(data, name)
+    if not isinstance(value, torch.Tensor) or value.numel() != 1:
+        return False
+    scalar = value.reshape(-1)[0]
+    if name in {"y", "y_cls"}:
+        return int(scalar.item()) == -1
+    return bool(torch.isnan(scalar))

@@ -16,9 +16,15 @@ from topostategrid import (  # noqa: E402
 
 
 def main() -> None:
-    graphs = []
-    graphs.extend(build_graphs_from_opfdata(ROOT / "data" / "opfdata", network_id="pglib_opf_case14_ieee", limit=5))
-    graphs.extend(build_graphs_from_opfdata(ROOT / "data" / "opfdata", network_id="pglib_opf_case30_ieee", limit=5))
+    case14_graphs = build_graphs_from_opfdata(ROOT / "data" / "opfdata", network_id="pglib_opf_case14_ieee", limit=5)
+    case30_graphs = build_graphs_from_opfdata(ROOT / "data" / "opfdata", network_id="pglib_opf_case30_ieee", limit=5)
+    if not case14_graphs or not case30_graphs:
+        raise SystemExit(
+            "Local OPFData samples for both pglib_opf_case14_ieee and pglib_opf_case30_ieee are required. "
+            "Run this example from the repository root with data/opfdata available, "
+            "or call topostategrid package functions with your own input paths."
+        )
+    graphs = case14_graphs + case30_graphs
 
     output_dir = ROOT / "outputs"
     random_split = create_random_split(graphs, seed=3)

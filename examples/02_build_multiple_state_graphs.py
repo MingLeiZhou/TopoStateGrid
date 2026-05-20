@@ -16,6 +16,12 @@ def main() -> None:
         limit=16,
         attach_proxy_label=True,
     )
+    if not graphs:
+        raise SystemExit(
+            "No local OPFData samples found for pglib_opf_case14_ieee. "
+            "Run this example from the repository root with data/opfdata available, "
+            "or call topostategrid package functions with your own input path."
+        )
     split = create_random_split(graphs, seed=7)
 
     output_dir = ROOT / "outputs"

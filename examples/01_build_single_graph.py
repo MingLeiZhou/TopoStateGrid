@@ -22,6 +22,12 @@ def main() -> None:
         source = opf_paths[0]
     else:
         source = ROOT / "data" / "pglib" / "pglib_opf_case118_ieee.m"
+        if not source.exists():
+            raise SystemExit(
+                "No local OPFData sample or fallback MATPOWER file found. "
+                "Run this example from the repository root with data/ available, "
+                "or call topostategrid package functions with your own input path."
+            )
         graph = build_graph_from_matpower(source)
 
     paths = export_dataset([graph], ROOT / "outputs")
