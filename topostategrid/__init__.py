@@ -24,7 +24,7 @@ from .tables import build_graph_from_csv_tables, build_graph_from_tables
 from .temporal import make_temporal_windows
 from .visualization import render_graph_sequence
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 __all__ = [
     "EDGE_FEATURE_NAMES",

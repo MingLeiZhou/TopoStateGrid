@@ -1,5 +1,7 @@
 # TopoStateGrid
 
+[English](https://github.com/MingLeiZhou/TopoStateGrid/blob/main/README.md) | [中文](https://github.com/MingLeiZhou/TopoStateGrid/blob/main/README_zh.md) | [Português](https://github.com/MingLeiZhou/TopoStateGrid/blob/main/README_pt.md)
+
 TopoStateGrid is a physically informed graph construction method that converts power-grid topology, component attributes, and operating-state variables into machine-learning-ready graph datasets.
 
 The Python import name is:
